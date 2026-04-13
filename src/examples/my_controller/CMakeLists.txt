@@ -32,14 +32,14 @@
 ############################################################################
 
 px4_add_module(
-	MODULE examples__work_item
-	MAIN work_item_example
+	MODULE examples__my_controller
+	MAIN my_controller
 	COMPILE_FLAGS
 		#-DDEBUG_BUILD   # uncomment for PX4_DEBUG output
 		#-O0             # uncomment when debugging
 	SRCS
-		WorkItemExample.cpp
-		WorkItemExample.hpp
+		my_controller.cpp
+		my_controller.hpp
 	DEPENDS
 		px4_work_queue
 	)
