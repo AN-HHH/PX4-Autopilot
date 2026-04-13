@@ -74,10 +74,17 @@ python3 -m pip install --user -r ${DIR}/requirements.txt
 
 # Optional, but recommended additional simulation tools:
 if [[ $INSTALL_SIM == "--sim-tools" ]]; then
-	if brew ls --versions px4-sim > /dev/null; then
+	if ! brew ls --versions px4-sim > /dev/null; then
 		brew install px4-sim
 	elif [[ $REINSTALL_FORMULAS == "--reinstall" ]]; then
 		brew reinstall px4-sim
+	fi
+
+	# jMAVSim requires a JDK (Java 17 LTS recommended)
+	if ! brew ls --versions openjdk@17 > /dev/null; then
+		echo "[macos.sh] Installing OpenJDK 17 (required for jMAVSim)"
+		brew install openjdk@17
+		sudo ln -sfn $(brew --prefix openjdk@17)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-17.jdk
 	fi
 fi
 

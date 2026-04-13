@@ -10,6 +10,10 @@ CAN it is designed to be democratic and uses differential signaling.
 For this reason it is very robust even over longer cable lengths (on large vehicles), and avoids a single point of failure.
 CAN також дозволяє отримання зворотного зв'язку від периферійних пристроїв та зручне оновлення прошивки через шину.
 
+PX4 has the ability to track and log detailed information from CAN devices, including firmware versions, hardware versions, and serial numbers.
+This enables unique identification and lifecycle tracking of hardware connected to the flight controller.
+See [Asset Tracking](../debug/asset_tracking.md) for more information.
+
 PX4 підтримує два програмні протоколи для взаємодії з пристроями CAN:
 
 - [DroneCAN](../dronecan/README.md): PX4 рекомендує це для більшості типових налаштувань.
@@ -34,7 +38,7 @@ Devices within a network are connected in a _daisy-chain_ in any order (this dif
 
 :::warning
 Don't connect each CAN peripheral to a separate CAN port!
-Unlike UARTs, CAN peripherals are designed to be daisy chained, with additional ports such as `CAN2` used for [redundancy](redundancy).
+Unlike UARTs, CAN peripherals are designed to be daisy chained, with additional ports such as `CAN2` used for [redundancy](#redundancy).
 :::
 
 На обох кінцях ланцюга між двома лініями передачі даних слід під’єднати термінальний резистор 120 Ом.
@@ -80,7 +84,7 @@ You only _need_ one CAN port to support an arbitrary number of CAN devices using
 Don't connect each CAN peripheral to a separate CAN port!
 :::
 
-Generally you'll daisy all CAN peripherals off a single port, and if there is more than one CAN port, use the second one for [redundancy](redundancy).
+Generally you'll daisy all CAN peripherals off a single port, and if there is more than one CAN port, use the second one for [redundancy](#redundancy).
 If three are three ports, you might use the remaining network for devices that support another CAN protocol.
 
 The documentation for your flight controller should indicate which ports are supported/enabled.

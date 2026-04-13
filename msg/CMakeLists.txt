@@ -69,6 +69,8 @@ set(msg_files
 	DistanceSensorModeChangeRequest.msg
 	DronecanNodeStatus.msg
 	Ekf2Timestamps.msg
+	EscEepromRead.msg
+	EscEepromWrite.msg
 	EscReport.msg
 	EscStatus.msg
 	EstimatorAidSource1d.msg
@@ -77,6 +79,7 @@ set(msg_files
 	EstimatorBias.msg
 	EstimatorBias3d.msg
 	EstimatorEventFlags.msg
+	EstimatorFusionControl.msg
 	EstimatorGpsStatus.msg
 	EstimatorInnovations.msg
 	EstimatorSelectorStatus.msg
@@ -175,6 +178,7 @@ set(msg_files
 	QshellReq.msg
 	QshellRetval.msg
 	RadioStatus.msg
+	RangingBeacon.msg
 	RateCtrlStatus.msg
 	RcChannels.msg
 	RcParameterMap.msg
@@ -240,6 +244,7 @@ set(msg_files
 	VehicleThrustSetpoint.msg
 	VehicleTorqueSetpoint.msg
 	VelocityLimits.msg
+	Vtx.msg
 	WheelEncoders.msg
 	YawEstimatorStatus.msg
 	versioned/ActuatorMotors.msg
@@ -247,6 +252,7 @@ set(msg_files
 	versioned/AirspeedValidated.msg
 	versioned/ArmingCheckReply.msg
 	versioned/ArmingCheckRequest.msg
+	versioned/AuxGlobalPosition.msg
 	versioned/BatteryStatus.msg
 	versioned/ConfigOverrides.msg
 	versioned/FixedWingLateralSetpoint.msg

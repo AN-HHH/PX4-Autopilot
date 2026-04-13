@@ -44,6 +44,8 @@
 
 using namespace time_literals;
 
+ModuleBase::Descriptor ILabs::desc{task_spawn, custom_command, print_usage};
+
 // GPS epoch: 1980-01-06 00:00:00 UTC
 constexpr uint64_t GPS_EPOCH_SECS = 315964800ULL;
 
@@ -152,8 +154,8 @@ int ILabs::task_spawn(int argc, char *argv[]) {
 			return PX4_ERROR;
 		}
 
-		_object.store(instance);
-		_task_id = task_id_is_work_queue;
+		desc.object.store(instance);
+		desc.task_id = task_id_is_work_queue;
 
 		instance->ScheduleNow();
 
@@ -227,7 +229,7 @@ int ILabs::print_status() {
 void ILabs::Run() {
 	if (should_exit()) {
 		_sensor.deinit();
-		exit_and_cleanup();
+		exit_and_cleanup(desc);
 		return;
 	}
 
@@ -483,7 +485,7 @@ void ILabs::processData(InertialLabs::SensorsData *data) {
 
 		sensor_gps.jamming_state = data->gps.jamStatus;
 		sensor_gps.jamming_indicator = (sensor_gps.jamming_state != InertialLabs::JammingStatus::UNKOWN_OR_DISABLED) &&
-					       (sensor_gps.jamming_state != InertialLabs::JammingStatus::OK);
+					       (sensor_gps.jamming_state != InertialLabs::JammingStatus::NO_SIGNIFICANT);
 		sensor_gps.spoofing_state = data->gps.spoofingStatus;
 
 		sensor_gps.vel_m_s =
@@ -530,5 +532,5 @@ void ILabs::processData(InertialLabs::SensorsData *data) {
 }
 
 extern "C" __EXPORT int ilabs_main(int argc, char *argv[]) {
-	return ILabs::main(argc, argv);
+	return ModuleBase::main(ILabs::desc, argc, argv);
 }

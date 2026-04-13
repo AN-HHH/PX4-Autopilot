@@ -36,9 +36,10 @@
 using namespace time_literals;
 using namespace matrix;
 
-using math::constrain;
 using math::interpolate;
 using math::radians;
+
+ModuleBase::Descriptor FixedwingRateControl::desc{task_spawn, custom_command, print_usage};
 
 FixedwingRateControl::FixedwingRateControl(bool vtol) :
 	ModuleParams(nullptr),
@@ -205,7 +206,7 @@ void FixedwingRateControl::Run()
 {
 	if (should_exit()) {
 		_vehicle_angular_velocity_sub.unregisterCallback();
-		exit_and_cleanup();
+		exit_and_cleanup(desc);
 		return;
 	}
 
@@ -288,8 +289,18 @@ void FixedwingRateControl::Run()
 				_rate_control.resetIntegral();
 			}
 
+			launch_detection_status_s launch_detection_status{};
+			_launch_detection_status_sub.copy(&launch_detection_status);
+
+			bool control_surfaces_locked = false;
+
+			if (hrt_elapsed_time(&launch_detection_status.timestamp) < 100_ms
+			    && launch_detection_status.selected_control_surface_disarmed) {
+				control_surfaces_locked = true;
+			}
+
 			// Reset integrators if the aircraft is on ground or not in a state where the fw attitude controller is run
-			if (_landed || !_in_fw_or_transition_wo_tailsitter_transition) {
+			if (_landed || !_in_fw_or_transition_wo_tailsitter_transition || control_surfaces_locked) {
 
 				_gain_compression.reset();
 				_rate_control.resetIntegral();
@@ -458,9 +469,35 @@ void FixedwingRateControl::Run()
 			// Flaps control
 			float flaps_control = 0.f; // default to no flaps
 
-			/* map flaps by default to manual if valid */
-			if (PX4_ISFINITE(_manual_control_setpoint.flaps)) {
-				flaps_control = math::max(_manual_control_setpoint.flaps, 0.f); // do not consider negative switch settings
+			switch (_param_fw_flaps_man.get()) { 		// do not consider negative switch settings
+			case 0:
+				break;
+
+			case 1:
+				flaps_control = PX4_ISFINITE(_manual_control_setpoint.aux1) ? math::max(_manual_control_setpoint.aux1, 0.f) : 0.f;
+				break;
+
+			case 2:
+				flaps_control = PX4_ISFINITE(_manual_control_setpoint.aux2) ? math::max(_manual_control_setpoint.aux2, 0.f) : 0.f;
+				break;
+
+			case 3:
+				flaps_control = PX4_ISFINITE(_manual_control_setpoint.aux3) ? math::max(_manual_control_setpoint.aux3, 0.f) : 0.f;
+				break;
+
+			case 4:
+				flaps_control = PX4_ISFINITE(_manual_control_setpoint.aux4) ? math::max(_manual_control_setpoint.aux4, 0.f) : 0.f;
+				break;
+
+			case 5:
+				flaps_control = PX4_ISFINITE(_manual_control_setpoint.aux5) ? math::max(_manual_control_setpoint.aux5, 0.f) : 0.f;
+				break;
+
+			case 6:
+				flaps_control = PX4_ISFINITE(_manual_control_setpoint.flaps) ? math::max(_manual_control_setpoint.flaps, 0.f) : 0.f;
+				break;
+
+
 			}
 
 			normalized_unsigned_setpoint_s flaps_setpoint;
@@ -471,18 +508,28 @@ void FixedwingRateControl::Run()
 			// Spoilers control
 			float spoilers_control = 0.f; // default to no spoilers
 
-			switch (_param_fw_spoilers_man.get()) {
+			switch (_param_fw_spoilers_man.get()) {		// do not consider negative switch settings
 			case 0:
 				break;
 
 			case 1:
-				// do not consider negative switch settings
 				spoilers_control = PX4_ISFINITE(_manual_control_setpoint.flaps) ? math::max(_manual_control_setpoint.flaps, 0.f) : 0.f;
 				break;
 
 			case 2:
-				// do not consider negative switch settings
 				spoilers_control = PX4_ISFINITE(_manual_control_setpoint.aux1) ? math::max(_manual_control_setpoint.aux1, 0.f) : 0.f;
+				break;
+
+			case 3:
+				spoilers_control = PX4_ISFINITE(_manual_control_setpoint.aux2) ? math::max(_manual_control_setpoint.aux2, 0.f) : 0.f;
+				break;
+
+			case 4:
+				spoilers_control = PX4_ISFINITE(_manual_control_setpoint.aux3) ? math::max(_manual_control_setpoint.aux3, 0.f) : 0.f;
+				break;
+
+			case 5:
+				spoilers_control = PX4_ISFINITE(_manual_control_setpoint.aux4) ? math::max(_manual_control_setpoint.aux4, 0.f) : 0.f;
 				break;
 			}
 
@@ -541,8 +588,8 @@ int FixedwingRateControl::task_spawn(int argc, char *argv[])
 	FixedwingRateControl *instance = new FixedwingRateControl(vtol);
 
 	if (instance) {
-		_object.store(instance);
-		_task_id = task_id_is_work_queue;
+		desc.object.store(instance);
+		desc.task_id = task_id_is_work_queue;
 
 		if (instance->init()) {
 			return PX4_OK;
@@ -553,8 +600,8 @@ int FixedwingRateControl::task_spawn(int argc, char *argv[])
 	}
 
 	delete instance;
-	_object.store(nullptr);
-	_task_id = -1;
+	desc.object.store(nullptr);
+	desc.task_id = -1;
 
 	return PX4_ERROR;
 }
@@ -587,5 +634,5 @@ fw_rate_control is the fixed-wing rate controller.
 
 extern "C" __EXPORT int fw_rate_control_main(int argc, char *argv[])
 {
-	return FixedwingRateControl::main(argc, argv);
+	return ModuleBase::main(FixedwingRateControl::desc, argc, argv);
 }

@@ -48,6 +48,8 @@
 
 #include "uuv_att_control.hpp"
 
+ModuleBase::Descriptor UUVAttitudeControl::desc{task_spawn, custom_command, print_usage};
+
 
 /**
  * UUV attitude control app start / stop handling function
@@ -268,9 +270,9 @@ void UUVAttitudeControl::generate_attitude_setpoint(float dt)
 
 	if (js_heave_sway_mode) {
 		// XYZ thrust
-		_attitude_setpoint.thrust_body[0] = _manual_control_setpoint.throttle * throttle_manual_attitude_gain; // surge +x
+		_attitude_setpoint.thrust_body[0] = _manual_control_setpoint.pitch * throttle_manual_attitude_gain; // heave +z down
 		_attitude_setpoint.thrust_body[1] = _manual_control_setpoint.roll * throttle_manual_attitude_gain; // sway +y
-		_attitude_setpoint.thrust_body[2] = -_manual_control_setpoint.pitch * throttle_manual_attitude_gain; // heave +z down
+		_attitude_setpoint.thrust_body[2] = -_manual_control_setpoint.throttle * throttle_manual_attitude_gain; // surge +x
 
 	} else {
 		// Throttle only on +x (surge)
@@ -293,9 +295,9 @@ void UUVAttitudeControl::generate_rates_setpoint(float dt)
 		_rates_setpoint.pitch = 0.0f;
 		_rates_setpoint.yaw = _manual_control_setpoint.yaw * dt * _param_rgm_yaw.get();
 
-		_rates_setpoint.thrust_body[0] = _manual_control_setpoint.throttle * throttle_manual_rate_gain; // surge +x
+		_rates_setpoint.thrust_body[0] = _manual_control_setpoint.pitch * throttle_manual_rate_gain; // heave +z down
 		_rates_setpoint.thrust_body[1] = _manual_control_setpoint.roll * throttle_manual_rate_gain; // sway +y
-		_rates_setpoint.thrust_body[2] = -_manual_control_setpoint.pitch * throttle_manual_rate_gain; // heave +z down
+		_rates_setpoint.thrust_body[2] = -_manual_control_setpoint.throttle * throttle_manual_rate_gain; // surge +x
 
 	} else {
 		// Roll/pitch/yaw are rate commands; thrust only surge
@@ -336,7 +338,7 @@ void UUVAttitudeControl::Run()
 {
 	if (should_exit()) {
 		_vehicle_attitude_sub.unregisterCallback();
-		exit_and_cleanup();
+		exit_and_cleanup(desc);
 		return;
 	}
 
@@ -402,9 +404,9 @@ void UUVAttitudeControl::Run()
 					const float pitch_u = 0.0f;
 					const float yaw_u = _manual_control_setpoint.yaw * _param_mgm_yaw.get();
 
-					const float thrust_x = _manual_control_setpoint.throttle * throttle_manual_gain; // surge
+					const float thrust_x = _manual_control_setpoint.pitch * throttle_manual_gain; // heave
 					const float thrust_y = _manual_control_setpoint.roll * throttle_manual_gain; // sway
-					const float thrust_z = -_manual_control_setpoint.pitch * throttle_manual_gain; // heave
+					const float thrust_z = -_manual_control_setpoint.throttle * throttle_manual_gain; // surge
 
 					constrain_actuator_commands(roll_u, pitch_u, yaw_u, thrust_x, thrust_y, thrust_z);
 
@@ -456,8 +458,8 @@ int UUVAttitudeControl::task_spawn(int argc, char *argv[])
 	UUVAttitudeControl *instance = new UUVAttitudeControl();
 
 	if (instance) {
-		_object.store(instance);
-		_task_id = task_id_is_work_queue;
+		desc.object.store(instance);
+		desc.task_id = task_id_is_work_queue;
 
 		if (instance->init()) {
 			return PX4_OK;
@@ -468,8 +470,8 @@ int UUVAttitudeControl::task_spawn(int argc, char *argv[])
 	}
 
 	delete instance;
-	_object.store(nullptr);
-	_task_id = -1;
+	desc.object.store(nullptr);
+	desc.task_id = -1;
 
 	return PX4_ERROR;
 }
@@ -516,5 +518,5 @@ $ uuv_att_control stop
 
 int uuv_att_control_main(int argc, char *argv[])
 {
-	return UUVAttitudeControl::main(argc, argv);
+	return ModuleBase::main(UUVAttitudeControl::desc, argc, argv);
 }

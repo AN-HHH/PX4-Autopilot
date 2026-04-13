@@ -510,7 +510,7 @@ void Failsafe::checkStateAndMode(const hrt_abstime &time_us, const State &state,
 					   || state.user_intended_mode == vehicle_status_s::NAVIGATION_STATE_AUTO_PRECLAND;
 
 	const bool dll_loss_ignored = isFailsafeIgnored(state.user_intended_mode, _param_com_dll_except.get())
-				      || ignore_any_link_loss_vtol_takeoff_fixedwing || dll_loss_ignored_land;
+				      || ignore_any_link_loss_vtol_takeoff_fixedwing || dll_loss_ignored_land || !state.armed;
 
 	if (_param_nav_dll_act.get() != int32_t(gcs_connection_loss_failsafe_mode::Disabled) && !dll_loss_ignored) {
 		CHECK_FAILSAFE(status_flags, gcs_connection_lost, fromNavDllOrRclActParam(_param_nav_dll_act.get()).causedBy(Cause::GCSConnectionLoss));
@@ -573,6 +573,9 @@ void Failsafe::checkStateAndMode(const hrt_abstime &time_us, const State &state,
 	} else {
 		CHECK_FAILSAFE(status_flags, battery_unhealthy, Action::Warn);
 	}
+
+	// Parachute system health failsafe
+	CHECK_FAILSAFE(status_flags, parachute_unhealthy, Action::RTL);
 
 	// Battery low failsafe
 	// If battery was low and arming was allowed through COM_ARM_BAT_MIN, don't failsafe immediately for the current low battery warning state
@@ -668,6 +671,15 @@ FailsafeBase::Action Failsafe::checkModeFallback(const failsafe_flags_s &status_
 		// for this specific case, user_intended_mode is not modified, we shouldn't check additional fallbacks
 		if (action == Action::Disarm) {
 			return action;
+		}
+
+		if (action == Action::FallbackPosCtrl || action == Action::FallbackAltCtrl || action == Action::FallbackStab) {
+			// Check if RC is available, if not use the mode specified in NAV_RCL_ACT
+			if (status_flags.manual_control_signal_lost) {
+				ActionOptions rc_loss_action = fromNavDllOrRclActParam(_param_nav_rcl_act.get());
+				action = rc_loss_action.action;
+			}
+
 		}
 	}
 
