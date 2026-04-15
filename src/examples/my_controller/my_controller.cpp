@@ -82,10 +82,15 @@ void MyController::Run()
 
 	// 9) 遥控器映射：杆量[-1,1] -> 角速度设定
 	if (_manual.valid) {
-		roll_rate_sp = math::constrain(_manual.roll, -1.f, 1.f) * _max_roll_rate;
-		pitch_rate_sp = math::constrain(_manual.pitch, -1.f, 1.f) * _max_pitch_rate;
-		yaw_rate_sp = math::constrain(_manual.yaw, -1.f, 1.f) * _max_yaw_rate;
-		throttle = math::constrain(_manual.throttle, -1.f, 1.f);
+	roll_rate_sp = 0.f; // 先不直接控制roll轴
+
+	// 用横滚杆来控制“当前可直接作用的倾斜轴”（先放到pitch通道）
+	pitch_rate_sp = math::constrain(_manual.roll, -1.f, 1.f) * _max_pitch_rate;
+
+	// 保留yaw控制（你的自旋相关）
+	yaw_rate_sp = math::constrain(_manual.yaw, -1.f, 1.f) * _max_yaw_rate;
+
+	throttle = math::constrain(_manual.throttle, -1.f, 1.f);
 	}
 
 	// 10) 简单偏航保持（可先保留）

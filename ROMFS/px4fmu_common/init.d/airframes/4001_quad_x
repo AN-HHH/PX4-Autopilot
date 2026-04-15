@@ -1,14 +1,24 @@
-# ===== your bi-rotor config =====
-param set-default CA_ROTOR_COUNT 2
+#!/bin/sh
+#
+# @name Generic Quadcopter
+#
+# @type Quadrotor x
+# @class Copter
+#
+# @maintainer Lorenz Meier <lorenz@px4.io>
+#
 
-# 电机0：+X 端
-param set-default CA_ROTOR0_PX  1.0
-param set-default CA_ROTOR0_PY  0.0
-param set-default CA_ROTOR0_PZ  0.0
-param set-default CA_ROTOR0_KM  0.05   # 同向旋转 => 与电机1同号
+. ${R}etc/init.d/rc.mc_defaults
 
-# 电机1：-X 端
-param set-default CA_ROTOR1_PX -1.0
-param set-default CA_ROTOR1_PY  0.0
-param set-default CA_ROTOR1_PZ  0.0
-param set-default CA_ROTOR1_KM  0.05   # 同号
+# Square quadrotor X PX4 numbering
+param set-default CA_ROTOR_COUNT 4
+param set-default CA_ROTOR0_PX 1
+param set-default CA_ROTOR0_PY 1
+param set-default CA_ROTOR1_PX -1
+param set-default CA_ROTOR1_PY -1
+param set-default CA_ROTOR2_PX 1
+param set-default CA_ROTOR2_PY -1
+param set-default CA_ROTOR2_KM -0.05
+param set-default CA_ROTOR3_PX -1
+param set-default CA_ROTOR3_PY 1
+param set-default CA_ROTOR3_KM -0.05
