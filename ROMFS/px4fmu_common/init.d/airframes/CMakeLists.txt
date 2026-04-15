@@ -106,7 +106,11 @@ if(CONFIG_MODULES_MC_RATE_CONTROL)
 
 		16001_helicopter
 
+		22001_TF-H1
+
 		24001_dodeca_cox
+
+
 	)
 endif()
 

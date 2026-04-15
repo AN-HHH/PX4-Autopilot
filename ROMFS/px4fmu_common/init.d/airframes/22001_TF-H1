@@ -2,13 +2,13 @@
 param set-default CA_ROTOR_COUNT 2
 
 # 电机0：+X 端
-param set-default CA_ROTOR0_PX  1.0
+param set-default CA_ROTOR0_PX  0.16
 param set-default CA_ROTOR0_PY  0.0
 param set-default CA_ROTOR0_PZ  0.0
 param set-default CA_ROTOR0_KM  0.05   # 同向旋转 => 与电机1同号
 
 # 电机1：-X 端
-param set-default CA_ROTOR1_PX -1.0
+param set-default CA_ROTOR1_PX -0.16
 param set-default CA_ROTOR1_PY  0.0
 param set-default CA_ROTOR1_PZ  0.0
 param set-default CA_ROTOR1_KM  0.05   # 同号

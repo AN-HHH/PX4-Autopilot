@@ -99,7 +99,7 @@ void MyController::Run()
 	yaw_rate_sp -= damping_gain * yaw_rate_feedback;
 
 	// 12) 转速保护：低转速时抑制姿态控制
-	if (PX4_ISFINITE(_last_measured_rpm) && _last_measured_rpm < _min_rpm_for_control) {
+	if (PX4_ISFINITE(_last_measured_rpm) && _last_measured_rpm < _min_rpm_for_ctrl) {
 		roll_rate_sp = 0.f;
 		pitch_rate_sp = 0.f;
 		yaw_rate_sp = 0.f;
